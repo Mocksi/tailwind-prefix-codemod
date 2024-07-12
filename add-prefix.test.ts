@@ -27,7 +27,7 @@ describe('Tailwind prefix codemod', () => {
     `;
     const expected = `
       const className = "mw-bg-red-500 mw-text-white mw-p-4";
-      const element = <div className="mw-hover:bg-blue-600 mw-focus:outline-none" />;
+      const element = <div className="hover:mw-bg-blue-600 focus:outline-none" />;
     `;
     expect(runTransform(input)).toBe(expected);
   });
@@ -89,12 +89,9 @@ describe('Tailwind prefix codemod', () => {
   });
 
   it('should handle multiple class names in a single attribute', () => {
-    const input = `
-      const className = "bg-red-500 text-white p-4 hover:bg-blue-600 focus:outline-none";
-    `;
-    const expected = `
-      const className = "mw-bg-red-500 mw-text-white mw-p-4 mw-hover:bg-blue-600 mw-focus:outline-none";
-    `;
+    const input = `const className = "bg-red-500 text-white p-4 hover:bg-blue-600 focus:outline-none";`;
+    const expected = `const className = "mw-bg-red-500 mw-text-white mw-p-4 hover:mw-bg-blue-600 focus:outline-none";`;
+
     expect(runTransform(input)).toBe(expected);
   });
 
@@ -113,7 +110,7 @@ describe('Tailwind prefix codemod', () => {
       const className = "hover:bg-red-500 focus:bg-blue-500 active:bg-green-500";
     `;
     const expected = `
-      const className = "mw-hover:bg-red-500 mw-focus:bg-blue-500 mw-active:bg-green-500";
+      const className = "hover:mw-bg-red-500 focus:mw-bg-blue-500 active:mw-bg-green-500";
     `;
     expect(runTransform(input)).toBe(expected);
   });
@@ -123,11 +120,43 @@ describe('Tailwind prefix codemod', () => {
       const className = "sm:bg-red-500 md:bg-blue-500 lg:bg-green-500 xl:bg-yellow-500";
     `;
     const expected = `
-      const className = "mw-sm:bg-red-500 mw-md:bg-blue-500 mw-lg:bg-green-500 mw-xl:bg-yellow-500";
+      const className = "sm:mw-bg-red-500 md:mw-bg-blue-500 lg:mw-bg-green-500 xl:mw-bg-yellow-500";
     `;
     expect(runTransform(input)).toBe(expected);
   });
-  
+
+  it('should add prefix after responsive and state modifiers', () => {
+    const input = `
+      const className = "sm:bg-red-500 md:text-xl hover:bg-blue-500 focus:outline-none";
+    `;
+    const expected = `
+      const className = "sm:mw-bg-red-500 md:mw-text-xl hover:mw-bg-blue-500 focus:outline-none";
+    `;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle negative values correctly', () => {
+    const input = `
+      const className = "-mt-8 -mx-4";
+    `;
+    const expected = `
+      const className = "-mw-mt-8 -mw-mx-4";
+    `;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should not modify custom utility classes', () => {
+    const input = `const className = "bg-brand-gradient hover:bg-brand-gradient text-lg";`;
+    const expected = `const className = "mw-bg-brand-gradient hover:mw-bg-brand-gradient mw-text-lg";`;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle a mix of Tailwind and custom classes', () => {
+    const input = `const className = "custom-class sm:bg-red-500 hover:custom-hover md:text-xl -mt-4";`;
+    const expected = `const className = "custom-class sm:mw-bg-red-500 hover:custom-hover md:mw-text-xl -mw-mt-4";`;
+    expect(runTransform(input)).toBe(expected);
+  });
+
   it('should handle flex correctly', () => {
     const input = `
       const className = "flex flex-row";
@@ -149,8 +178,60 @@ describe('Tailwind prefix codemod', () => {
   });
 
   it('should handle remaining classes correctly', () => {
-    const input = `const className = "justify-center relative absolute top-0 left-0 font-bold py-4 mr-2 mt-1 right-9 cursor-pointer gap-[5px] underline border rounded-full"; `;
-    const expected = `const className = "mw-justify-center mw-relative mw-absolute mw-top-0 mw-left-0 mw-font-bold mw-py-4 mw-mr-2 mw-mt-1 mw-right-9 mw-cursor-pointer mw-gap-[5px] mw-underline mw-border mw-rounded-full"; `;
+    const input = `const className = "justify-center relative absolute top-0 left-0 font-bold py-4 mr-2 mt-1 right-9 cursor-pointer gap-[5px] underline border rounded-full";`;
+    const expected = `const className = "mw-justify-center mw-relative mw-absolute mw-top-0 mw-left-0 mw-font-bold mw-py-4 mw-mr-2 mw-mt-1 mw-right-9 mw-cursor-pointer mw-gap-[5px] mw-underline mw-border mw-rounded-full";`;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle complex combinations of classes', () => {
+    const input = `
+    const className = "sm:hover:bg-red-500 md:focus:text-xl lg:active:p-4";
+  `;
+  const expected = `
+    const className = "sm:hover:bg-red-500 md:focus:text-xl lg:active:p-4";
+  `;
+  expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should not add prefix to already prefixed classes', () => {
+    const input = `
+      const className = "mw-bg-red-500 text-white mw-p-4";
+    `;
+    const expected = `
+      const className = "mw-bg-red-500 mw-text-white mw-p-4";
+    `;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle group and peer classes correctly', () => {
+    const input = `
+    const className = "group-hover:bg-red-500 peer-focus:text-xl";
+  `;
+  const expected = `
+    const className = "group-hover:mw-bg-red-500 peer-focus:text-xl";
+  `;
+  expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle arbitrary properties correctly', () => {
+    const input = `
+      const className = "[&>*]:border-red-500 [mask-type:luminance] [--scroll-offset:56px]";
+    `;
+    const expected = `
+      const className = "[&>*]:border-red-500 [mask-type:luminance] [--scroll-offset:56px]";
+    `;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should not modify class names within comments', () => {
+    const input = `
+      // This is a comment with bg-red-500 and text-white
+      const className = "bg-blue-500";
+    `;
+    const expected = `
+      // This is a comment with bg-red-500 and text-white
+      const className = "mw-bg-blue-500";
+    `;
     expect(runTransform(input)).toBe(expected);
   });
 });
