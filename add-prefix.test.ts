@@ -127,4 +127,30 @@ describe('Tailwind prefix codemod', () => {
     `;
     expect(runTransform(input)).toBe(expected);
   });
+  
+  it('should handle flex correctly', () => {
+    const input = `
+      const className = "flex flex-row";
+    `;
+    const expected = `
+      const className = "mw-flex mw-flex-row";
+    `;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle items-center correctly', () => {
+    const input = `
+      const className = "items-center";
+    `;
+    const expected = `
+      const className = "mw-items-center";
+    `;
+    expect(runTransform(input)).toBe(expected);
+  });
+
+  it('should handle remaining classes correctly', () => {
+    const input = `const className = "justify-center relative absolute top-0 left-0 font-bold py-4 mr-2 mt-1 right-9 cursor-pointer gap-[5px] underline border rounded-full"; `;
+    const expected = `const className = "mw-justify-center mw-relative mw-absolute mw-top-0 mw-left-0 mw-font-bold mw-py-4 mw-mr-2 mw-mt-1 mw-right-9 mw-cursor-pointer mw-gap-[5px] mw-underline mw-border mw-rounded-full"; `;
+    expect(runTransform(input)).toBe(expected);
+  });
 });

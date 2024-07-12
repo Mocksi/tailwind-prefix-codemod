@@ -3,15 +3,25 @@ import { API, FileInfo, Options } from 'jscodeshift';
 const defaultPrefix = 'mw-';
 
 function addPrefixToClasses(classString: string, prefix: string): string {
-  const tailwindRegex = /^(sm:|md:|lg:|xl:|2xl:|hover:|focus:|active:|group-hover:|focus-within:|disabled:|bg-|text-|p-|m-|w-|h-|flex|relative|absolute|top-|left-|font-|py-|mr-|mt-)([\w-/[\]#%\.]+)/;
+  const tailwindRegex = /^(sm:|md:|lg:|xl:|2xl:|hover:|focus:|active:|group-hover:|focus-within:|disabled:|bg-|text-|p[xy]?-|m[xytrblf]?-|w-|h-|flex$|flex-|items-|justify-|relative$|absolute$|top-|left-|right-|bottom-|font-|cursor-|gap-|underline$|border$|rounded-)([\w-/[\]#%\.]+)?/;
 
-  return classString
-    .split(' ')
-    .map((cls: string) => {
-      const match = cls.match(tailwindRegex);
-      return match ? `${prefix}${cls}` : cls;
-    })
-    .join(' ');
+
+  const classes = classString.split(' ');
+  const prefixedClasses = classes.map((cls: string) => {
+    // Special handling for standalone classes
+    if (['flex', 'relative', 'absolute', 'underline', 'border'].includes(cls)) {
+      return `${prefix}${cls}`;
+    }
+    const match = cls.match(tailwindRegex);
+    return match ? `${prefix}${cls}` : cls;
+  });
+
+  // Remove unprefixed classes if a prefixed version exists
+  const uniqueClasses = prefixedClasses.filter((cls, index, self) =>
+    cls.startsWith(prefix) || !self.some(c => c === `${prefix}${cls}`)
+  );
+
+  return uniqueClasses.join(' ');
 }
 
 interface ElementWithAttributes {
