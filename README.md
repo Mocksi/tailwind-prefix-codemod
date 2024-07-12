@@ -1,7 +1,9 @@
 # Tailwind Prefix Codemod
 
 Effortlessly add customizable prefixes to Tailwind CSS classes in your codebase. Optimize your Tailwind integration and prevent class name conflicts.
-![whimsy-illustration-of-a-bird-with-a-long-tail](https://github.com/user-attachments/assets/61e30ec5-b2cb-4c7d-bde3-bcb84ec44099)
+
+<img src="https://github.com/user-attachments/assets/61e30ec5-b2cb-4c7d-bde3-bcb84ec44099" alt="Mascot Image" width="200"/>
+
 
 ## Table of Contents
 - [Why This Tool Exists](#why-this-tool-exists)
